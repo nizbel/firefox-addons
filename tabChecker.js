@@ -15,15 +15,8 @@ function checkTab(tabId)
 function startCalculating(tab) {
     browser.tabs.sendMessage(tab.id, {
         command: "calculate"
-      });
-  }
-
-  /**
-   * Just log the error to the console.
-   */
-  function reportError(error) {
-    console.error(`Could not calculate: ${error}`);
-  }
+        });
+    }
 
 browser.tabs.onUpdated.addListener(function(tabId, changeInfo) {
     if (changeInfo.status == "complete") {
