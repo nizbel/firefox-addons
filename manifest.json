@@ -1,0 +1,35 @@
+{
+  "manifest_version": 2,
+  "name": "Wimoveis Square Meter Price",
+  "version": "1.0",
+
+  "description": "Adds price by square meter on Wimoveis",
+
+  "icons": {
+    
+  },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.wimoveis.com.br/*"],
+      "js": ["add-price.js"]
+    }
+  ],
+
+  "background": {
+    "scripts": ["tabChecker.js"],
+    "persistent": false,
+    "type": "module"
+  },
+  
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "wimoveis-sqm-price@example.com"
+    }
+  },
+
+  "permissions": [
+    "tabs", "activeTab"
+  ]
+
+}
