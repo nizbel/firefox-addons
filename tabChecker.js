@@ -7,6 +7,8 @@ function checkTab(tabId)
                     if (tabs[i].url.indexOf("wimoveis.com.br") > -1) {
                         startCalculating(tabs[i]);
                     }
+
+                    break;
                 }
             }
     })
