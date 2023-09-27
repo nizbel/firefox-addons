@@ -16,16 +16,13 @@
 
   function calculate() {
     // Check for listings
-    const listings = document.getElementsByClassName("sc-1tt2vbg-3 eFJncP");
+    const listingsContainer = document.getElementsByClassName("postings-container");
 
-    if (listings.length > 0) {
-      for (let i = 0; i < listings.length; i++) {
-        const listing = listings[i];
-        const observer = new MutationObserver((records, observer) => {
-          calculateListings([listing,]);
-        });
-        observer.observe(listing, {childList: true, subtree: true});
-      }
+    if (listingsContainer.length > 0) {
+      const observer = new MutationObserver((records, observer) => {
+        calculateListings(listingsContainer[0].getElementsByClassName("sc-1tt2vbg-3 eFJncP"));
+      });
+      observer.observe(listingsContainer[0], {childList: true, subtree: true});
     } else {
       const observer = new MutationObserver((records, observer) => {
         // Look for data in details page
@@ -52,56 +49,99 @@
     for (let i = 0; i < listings.length; i++) {
       let currentElement = listings[i];
 
-      // Look for price
-      let priceElement = currentElement.getElementsByClassName("sc-12dh9kl-4 hbUMaO");
+      // Check if property or development
+      if (checkIfProperty(currentElement)) {
+        // Look for price
+        let priceElement = currentElement.getElementsByClassName("sc-12dh9kl-4 hbUMaO");
 
-      if (priceElement.length !== 1 || priceElement[0].textContent.indexOf("/m²") > -1) {
-          continue;
+        if (priceElement.length !== 1 || priceElement[0].textContent.indexOf("/m²") > -1) {
+            continue;
+        }
+
+        // Look for size
+        let sizeElement = currentElement.getElementsByClassName("sc-1uhtbxc-1 dRoEma");
+
+        if (sizeElement.length !== 1) {
+            continue;
+        }
+
+        // Get parent element
+        let parent = sizeElement[0].parentElement;
+        
+        // Get m2 size
+        let m2Size = parent.getElementsByTagName("span")[0];
+
+        // Pick just the numeric part
+        m2Size = m2Size.textContent.trim().split(" ")[0];
+    
+        // Pick the first element if available
+        priceElement = priceElement[0];
+
+        let price = priceElement.textContent.trim().split(" ")[1];
+        price = price.replace(/\D/g, '');
+
+        let pricePerM2 = parseInt(price) / m2Size;
+
+        priceElement.textContent = priceElement.textContent + " (" + formatter.format(pricePerM2) + "/m²)";
+      } else {
+        // Is development
+        // Look for price
+        let priceElements = currentElement.getElementsByClassName("price");
+
+        if (priceElements.length < 1 || priceElements[0].textContent.indexOf("/m²") > -1) {
+            continue;
+        }
+
+        // Look for size
+        let sizeElement = currentElement.getElementsByClassName("sc-1uhtbxc-1 dRoEma");
+
+        if (sizeElement.length !== 1) {
+            continue;
+        }
+
+        // Get parent element
+        let parent = sizeElement[0].parentElement;
+        
+        // Get m2 size
+        let m2Sizes = parent.getElementsByTagName("span")[0];
+
+        // Pick just the numeric parts
+        m2Sizes = m2Sizes.textContent.trim().split(" ");
+        let sizes = [];
+        for (let i = 0; i < m2Sizes.length; i++) {
+          const replacedString = m2Sizes[i].replace(/\D/g, '');
+          if (replacedString.length > 0) {
+            sizes.push(replacedString);
+          }
+        }
+    
+        // Pick price elements
+        for (let i = 0; i < priceElements.length; i++) {
+          let priceElement = priceElements[i];
+
+          let price = priceElement.textContent.trim().split(" ")[1];
+          price = price.replace(/\D/g, '');
+
+          let pricePerM2 = parseInt(price) / sizes[i];
+
+          priceElement.appendChild(createDevelopmentPriceM2Element(pricePerM2));
+        }
       }
-
-      // Look for size
-      let sizeElement = currentElement.getElementsByClassName("sc-1uhtbxc-1 dRoEma");
-
-      if (sizeElement.length !== 1) {
-          continue;
-      }
-
-      // Get parent element
-      let parent = sizeElement[0].parentElement;
-      
-      // Get m2 size
-      let m2Size = parent.getElementsByTagName("span")[0];
-
-      // Pick just the numeric part
-      m2Size = m2Size.textContent.trim().split(" ")[0];
-  
-      // Pick the first element if available
-      priceElement = priceElement[0];
-
-      let price = priceElement.textContent.trim().split(" ")[1];
-      price = price.replace(/\D/g, '');
-
-      let pricePerM2 = parseInt(price) / m2Size;
-
-      priceElement.textContent = priceElement.textContent + " (" + formatter.format(pricePerM2) + "/m²)";
     }
   }
 
-  function logChanges(records, observer) {
-    for (const record of records) {
-      for (const addedNode of record.addedNodes) {
-        alert(`Added: ${addedNode.textContent}\n${log.textContent}`);
-      }
-      for (const removedNode of record.removedNodes) {
-        alert(`Removed: ${removedNode.textContent}\n${log.textContent}`);
-      }
-      // if (record.target.childNodes.length === 0) {
-      //   alert(`Disconnected\n${log.textContent}`);
-      //   observer.disconnect();
-      // }
-      alert(record.target.childNodes.length);
-    }
-    alert(observer);
+  function createDevelopmentPriceM2Element(price) {
+    const priceM2Element = document.createElement("span");
+    priceM2Element.classList.add("jneaYd");
+    priceM2Element.style.color = 'black';
+    priceM2Element.style.fontSize = '16px';
+    priceM2Element.textContent = `(${formatter.format(price)}/m²)`;
+
+    return priceM2Element;
+  }
+
+  function checkIfProperty(listing) {
+    return listing.getElementsByClassName("sc-i1odl-0 crUUno").length > 0;
   }
 
   /**
